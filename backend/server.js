@@ -2,8 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieSession from 'cookie-session';
 import multer from 'multer';
-import { TelegramClient } from 'telegram';
-import { StringSession } from 'telegram/sessions';
+import { TelegramClient, StringSession } from 'telegram';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import { join, dirname } from 'path';
@@ -21,7 +20,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: [process.env.PUBLIC_BASE_URL || 'http://localhost:5173', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json());
@@ -270,12 +269,6 @@ app.delete('/files/:id', async (req, res) => {
   const fileIndex = db.data.files.findIndex(f => f.id === req.params.id && f.userId === req.session.userId);
   if (fileIndex === -1) return res.status(404).json({ error: 'File not found' });
   
-  // Optionally delete from Telegram too
-  // const file = db.data.files[fileIndex];
-  // const user = db.data.users.find(u => u.id === file.userId);
-  // const client = await getClient(user.id, user.encryptedSession);
-  // await client.deleteMessages('me', [file.telegramMessageId]);
-  
   db.data.files.splice(fileIndex, 1);
   await db.write();
   
@@ -284,5 +277,5 @@ app.delete('/files/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
